@@ -1,0 +1,71 @@
+---
+title: "Automated Report"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+##Introduction
+
+This is an example of automating reports, the code below shows the part of the R code where the user enters information for the report:
+```{r Set year, country & filename for report, include=TRUE}
+# Set year and country to create report for, name of the country and filename 
+# (including .xls or .xlsx), must be inside the ""!!, if several years put in : between 
+# (for example 1990:2000)
+chosen_year <- 1990:2000
+chosen_country <- "Sweden"
+filename <- "indicator_t 25-54 unemploy.xlsx"
+# Set indicator, must be within the ""!!
+indicator <- "Unemployment rate"
+########################################################################################
+```
+
+
+```{r load packages and set options, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(here)
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(knitr)
+```
+
+```{r import and prepare data, include=FALSE}
+location <- here()
+unemployment <- read_excel(paste0(location, "/", filename))
+unemployment_long <- gather(unemployment, year, rate, -country)
+```
+
+\pagebreak
+
+## Gapminder Report
+
+  
+Link to the data used in this report <https://www.gapminder.org/data/>.
+
+
+This is an introductory text where country and year is automated automatically based on the information the user entered above, this example is for `r chosen_country` between `r min(chosen_year)` & `r max(chosen_year)`.
+  
+  
+### Including Tables
+```{r table, echo = FALSE, results = 'asis'}
+
+kable(unemployment[unemployment$country == chosen_country, c("country", as.character(chosen_year))], caption = paste(indicator, "for", chosen_country, "between the years", min(chosen_year), "&", max(chosen_year)))
+```
+
+### Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+unemployment_long[unemployment_long$year %in% chosen_year & unemployment_long$country == chosen_country,] %>%
+  ggplot(aes(x = as.numeric(year), y = rate, color = country)) +
+  geom_line() +
+  scale_x_continuous(breaks = scales::pretty_breaks()) +
+  labs(color = "Country", title = paste("Development of", indicator, "in", chosen_country, "between the years", min(chosen_year), "&", max(chosen_year)), caption = "Source: Gapminder") +
+  xlab("Year") +
+  ylab(paste(indicator)) +
+  theme_bw()+
+  theme(plot.title = element_text(size = 11))
+```
